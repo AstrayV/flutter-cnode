@@ -13,24 +13,21 @@ class ArticleRow extends StatelessWidget{
 
 
 
-
-//  String type(){
-//    if(rowData.top){
-//      return '置顶';
-//    }else{
-//      return articleType[rowData.tab];
-//    }
-//  }
   
   Map config(){
-    if(rowData.top){
+    if(rowData.top == true){
       return {'bg': const Color(0xff80bd01),'text': '置顶','textColor': Colors.white};
     }else{
-      return {'bg': Colors.grey,'text': articleType[rowData.tab],'textColor': const Color(0xffffffff)};
+      if(rowData.tab != null){
+        return {'bg': Colors.grey,'text': articleType[rowData.tab],'textColor': const Color(0xffffffff)};
+      }else{
+        return {'bg': Colors.grey,'text': '其他','textColor': const Color(0xffffffff)};
+      }
+
     }
   }
 
-  
+
   @override
   Widget build(BuildContext context) {
 

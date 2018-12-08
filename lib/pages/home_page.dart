@@ -24,6 +24,8 @@ class _HomePageState extends State<HomePage> {
   int limit = 15;
 
 
+
+
   List<ArticleRowModel> articleList = [];
 
   RefreshController _refreshController;
@@ -44,18 +46,42 @@ class _HomePageState extends State<HomePage> {
 
 
   void refresh(bool) async{
+
+
     if(bool){
+      print('up');
       page = 1;
+
       var data = await DataUtils.getList({'page': page, 'limit':limit});
+
       setState(() {
         _refreshController.sendBack(true, RefreshStatus.completed);
         articleList = data;
       });
     }else{
-      page++;
-      var newData = await DataUtils.getList({'page': page, 'limit': limit});
 
+
+
+      page = page + 1;
+      var newData = await DataUtils.getList({'page': page, 'limit': limit,'mdrender': false});
+      if(newData.length > 0){
+        setState(() {
+          if(newData.length == limit){
+            _refreshController.sendBack(false, RefreshStatus.canRefresh);
+          }else{
+            _refreshController.sendBack(false, RefreshStatus.noMore);
+          }
+          newData.forEach((item){
+            articleList.add(item);
+          });
+        });
+      }else{
+        setState(() {
+          _refreshController.sendBack(false, RefreshStatus.noMore);
+        });
+      }
     }
+
   }
 
 

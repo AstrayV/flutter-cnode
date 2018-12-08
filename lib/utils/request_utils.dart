@@ -6,6 +6,7 @@ var dio = new Dio();
 class RequestUtils {
   static Future get(String url, {Map<String, dynamic> params}) async {
     var response = await dio.get(url, data: params);
+
     return response.data;
   }
 

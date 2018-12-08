@@ -19,7 +19,7 @@ class _MyAppState extends State<MyApp>{
   Widget build(BuildContext context) {
     // TODO: implement build
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
+//      debugShowCheckedModeBanner: false,
       home: HomePage(),
       theme: ThemeData(
         primaryColor: const Color(0xff333333)
