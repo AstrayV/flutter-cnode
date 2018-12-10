@@ -50,7 +50,6 @@ class _HomePage extends State<HomePage> {
 
   Widget _rowBuilder(context, i, list) {
     if (list != null) {
-      print(i);
       return ArticleRow(rowData: list[i]);
     } else {
       return null;
@@ -74,6 +73,7 @@ class _HomePage extends State<HomePage> {
       List list = state.list.list;
 
       widget.store.dispatch(PageChangeAction(page: page ));
+      print(page);
       var data;
       if(tab != null){
         data = await DataUtils.getList({'page': page,'limit': 15,'tab': tab});
@@ -94,10 +94,12 @@ class _HomePage extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+//    print('page: ' + widget.store.state.title.title.toString());
+    var title = widget.store.state.title.title;
     return Scaffold(
       backgroundColor: const Color(0xffe1e1e1),
       appBar: AppBar(
-        title: Text('最新'),
+        title: Text(title),
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.edit),
@@ -123,7 +125,6 @@ class _HomePage extends State<HomePage> {
               itemCount: state.list.list == null ? 0 : state.list.list.length,
               physics: const AlwaysScrollableScrollPhysics(),
             ));
-//          return HomeList(list: list);
       }, converter: (Store<AppState> store) {
         return store.state;
       }),

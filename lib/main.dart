@@ -11,6 +11,10 @@ import 'redux/index.dart';
 void main() {
   Store<AppState> store = new Store<AppState>(mainReducer,
       initialState: new AppState(
-          page: new PageState(), tab: new TabState(), list: new ListState()));
+          page: new PageState(),
+          tab: new TabState(),
+          list: new ListState(),
+          title: new TitleState()
+      ));
   runApp(MyApp(store: store));
 }

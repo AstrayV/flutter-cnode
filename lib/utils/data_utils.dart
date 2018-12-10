@@ -9,6 +9,7 @@ class DataUtils {
       Map<String, dynamic> params) async {
     var res = await RequestUtils.get('https://cnodejs.org/api/v1/topics',
         params: params);
+    print(params.toString());
     var resList = res['data'];
     List<ArticleRowModel> resultList = new List();
     for (int i = 0; i < resList.length; i++) {
