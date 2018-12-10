@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_cnode/widget/my_draw.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
-
-
 import 'package:flutter_cnode/utils/data_utils.dart';
 import 'package:flutter_cnode/model/article_row_model.dart';
 
@@ -12,90 +10,61 @@ import 'package:flutter_cnode/widget/article_row.dart';
 
 import 'package:flutter_cnode/widget/header_indicator.dart';
 
+//redux
+import 'package:flutter_redux/flutter_redux.dart';
+import 'package:flutter_cnode/redux/index.dart';
+
+import 'package:redux/redux.dart';
+
 
 
 class HomePage extends StatefulWidget {
-  _HomePageState createState() => _HomePageState();
+  Store<AppState> store;
+  HomePage({this.store});
+  _HomePage createState() => _HomePage();
 }
 
-class _HomePageState extends State<HomePage> {
-
-  int page = 1;
-  int limit = 15;
-
-
-
-
-  List<ArticleRowModel> articleList = [];
+class _HomePage extends State<HomePage> {
+  getInitData() async {
+    var data;
+    var tab = widget.store.state.tab.tab;
+    if (tab == null) {
+      data = await DataUtils.getList({'page': 1, 'limit': 15});
+    } else {
+      data = await DataUtils.getList({'page': 1, 'limit': 15, 'tab': tab});
+    }
+    widget.store.dispatch(ListChangeAction(list: data));
+    setState(() {});
+  }
 
   RefreshController _refreshController;
 
-
-
-  void getData() async{
-    var data = await DataUtils.getList({'page':page,'limit': limit});
-    if(this.mounted){
-      setState(() {
-        articleList = data;
-
-      });
-    }
-  }
-
-
-
-
-  void refresh(bool) async{
-
-
-    if(bool){
-      print('up');
-      page = 1;
-
-      var data = await DataUtils.getList({'page': page, 'limit':limit});
-
-      setState(() {
-        _refreshController.sendBack(true, RefreshStatus.completed);
-        articleList = data;
-      });
-    }else{
-
-
-
-      page = page + 1;
-      var newData = await DataUtils.getList({'page': page, 'limit': limit,'mdrender': false});
-      if(newData.length > 0){
-        setState(() {
-          if(newData.length == limit){
-            _refreshController.sendBack(false, RefreshStatus.canRefresh);
-          }else{
-            _refreshController.sendBack(false, RefreshStatus.noMore);
-          }
-          newData.forEach((item){
-            articleList.add(item);
-          });
-        });
-      }else{
-        setState(() {
-          _refreshController.sendBack(false, RefreshStatus.noMore);
-        });
-      }
-    }
-
-  }
-
+  List<ArticleRowModel> arr = [];
 
   @override
   void initState() {
     _refreshController = new RefreshController();
     super.initState();
-    getData();
+    getInitData();
   }
 
-  Widget _rowBuilder(context,i){
-    return ArticleRow(rowData: articleList[i]);
+  Widget _rowBuilder(context, i, list) {
+    if (list != null) {
+      print(i);
+      return ArticleRow(rowData: list[i]);
+    } else {
+      return null;
+    }
   }
 
+  void refresh(bool) async {
+    if (bool) {
+      await getInitData();
+      setState(() {
+        _refreshController.sendBack(true, RefreshStatus.completed);
+      });
+    } else {}
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +75,7 @@ class _HomePageState extends State<HomePage> {
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.edit),
-            onPressed: (){
+            onPressed: () {
               debugPrint('edit');
             },
             color: Colors.white,
@@ -114,36 +83,24 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
 
-//      body: RefreshIndicator(
-//        backgroundColor: Colors.white,
-//        child: ListView.builder(
-//          itemBuilder: _rowBuilder,
-//          itemCount: articleList.length,
-//          physics: const AlwaysScrollableScrollPhysics(),
-//        ),
-//        onRefresh: refresh,
-//      ),
-//      body: SmartRefresher(
-//        enablePullDown: true,
-//        onRefresh: (bool)=>refresh(bool),
-//        controller: _refreshController,
-//
-//        child: ListView.builder(
-//          itemBuilder: _rowBuilder,
-//          itemCount: articleList.length,
-//          physics: const AlwaysScrollableScrollPhysics(),
-//        )
-//      ),
-      body: SmartRefresher(
-        enablePullDown: true,
-        enablePullUp: true,
-        onRefresh: refresh,
-        controller: _refreshController,
-        headerBuilder: ((BuildContext context, int mode){return new HeaderIndicator(mode:mode);}),
-        child: ListView.builder(itemBuilder: _rowBuilder,itemCount: articleList.length,physics: const AlwaysScrollableScrollPhysics()),
-      ),
+      body: StoreConnector(builder: (context, List<ArticleRowModel> list) {
+        return SmartRefresher(
+            enablePullDown: true,
+            controller: _refreshController,
+            onRefresh: refresh,
+            headerBuilder: ((BuildContext context, int mode) {
+              return HeaderIndicator(mode: mode);
+            }),
+            child: ListView.builder(
+              itemBuilder: (context, i) => _rowBuilder(context, i, list),
+              itemCount: list == null ? 0 : list.length,
+              physics: const AlwaysScrollableScrollPhysics(),
+            ));
+//          return HomeList(list: list);
+      }, converter: (Store<AppState> store) {
+        return store.state.list.list;
+      }),
       drawer: MyDrawer(),
-
     );
   }
 }
