@@ -57,13 +57,39 @@ class _HomePage extends State<HomePage> {
     }
   }
 
-  void refresh(bool) async {
+
+
+
+  void refresh(bool,state) async {
+
     if (bool) {
+      widget.store.dispatch(PageChangeAction(page: 1));
       await getInitData();
       setState(() {
         _refreshController.sendBack(true, RefreshStatus.completed);
       });
-    } else {}
+    } else {
+      int page = state.page.page +1;
+      String tab = state.tab.tab;
+      List list = state.list.list;
+
+      widget.store.dispatch(PageChangeAction(page: page ));
+      var data;
+      if(tab != null){
+        data = await DataUtils.getList({'page': page,'limit': 15,'tab': tab});
+      }else{
+        data = await DataUtils.getList({'page': page,'limit': 15});
+      }
+      list.addAll(data);
+      widget.store.dispatch(ListChangeAction(list: list));
+      setState(() {
+        if(data.length == 15){
+          _refreshController.sendBack(false, RefreshStatus.canRefresh);
+        }else{
+          _refreshController.sendBack(false, RefreshStatus.noMore);
+        }
+      });
+    }
   }
 
   @override
@@ -83,22 +109,23 @@ class _HomePage extends State<HomePage> {
         ],
       ),
 
-      body: StoreConnector(builder: (context, List<ArticleRowModel> list) {
+      body: StoreConnector(builder: (context, AppState state) {
         return SmartRefresher(
             enablePullDown: true,
+            enablePullUp: true,
             controller: _refreshController,
-            onRefresh: refresh,
+            onRefresh: (bool)=> refresh(bool,state),
             headerBuilder: ((BuildContext context, int mode) {
               return HeaderIndicator(mode: mode);
             }),
             child: ListView.builder(
-              itemBuilder: (context, i) => _rowBuilder(context, i, list),
-              itemCount: list == null ? 0 : list.length,
+              itemBuilder: (context, i) => _rowBuilder(context, i, state.list.list),
+              itemCount: state.list.list == null ? 0 : state.list.list.length,
               physics: const AlwaysScrollableScrollPhysics(),
             ));
 //          return HomeList(list: list);
       }, converter: (Store<AppState> store) {
-        return store.state.list.list;
+        return store.state;
       }),
       drawer: MyDrawer(),
     );
